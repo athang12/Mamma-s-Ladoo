@@ -113,8 +113,7 @@ export default function AdminProductsPage() {
   }
 
   const handleEdit = (product: Product) => {
-    setEditingProduct(product)
-    setFormData({
+    const nextFormData: FormProduct = {
       name: product.name,
       description: product.description || '',
       price: Number(product.price),
@@ -122,7 +121,9 @@ export default function AdminProductsPage() {
       stock: product.stock,
       featured: product.featured,
       id: product.id,
-    })
+    }
+    setEditingProduct(nextFormData)
+    setFormData(nextFormData)
     setShowForm(true)
   }
 
