@@ -8,11 +8,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Brand */}
           <div className="text-center sm:text-left">
-            <h3 className="text-xl md:text-2xl font-display font-bold mb-3 md:mb-4 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-              Acrylic & Decor
+            <h3 className="text-xl md:text-2xl font-display font-bold mb-3 md:mb-4 bg-gradient-to-r from-amber-300 to-orange-400 bg-clip-text text-transparent">
+              Mamma&apos;s Ladoo
             </h3>
             <p className="text-gray-400 text-sm md:text-base">
-              Creating beautiful custom products for your space
+              Fresh homemade ladoos and snacks for every occasion
             </p>
           </div>
 
@@ -22,7 +22,7 @@ export default function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href="/products" className="text-gray-400 hover:text-pink-400 transition-colors text-sm md:text-base tap-highlight-transparent">
-                  Shop All
+                  Shop
                 </Link>
               </li>
               <li>
@@ -97,7 +97,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-700 mt-6 md:mt-8 pt-6 md:pt-8 text-center text-gray-400">
-          <p className="text-xs md:text-sm">&copy; 2026 Acrylic & Decor. All rights reserved.</p>
+          <p className="text-xs md:text-sm">&copy; 2026 Mamma&apos;s Ladoo. All rights reserved.</p>
         </div>
       </div>
     </footer>

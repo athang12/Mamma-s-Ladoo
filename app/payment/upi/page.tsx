@@ -20,7 +20,7 @@ function UPIPaymentContent() {
   
   // Get UPI ID from environment (you'll set this up)
   const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID || 'merchant@paytm'
-  const MERCHANT_NAME = process.env.NEXT_PUBLIC_MERCHANT_NAME || 'Custom Acrylic Store'
+  const MERCHANT_NAME = process.env.NEXT_PUBLIC_MERCHANT_NAME || "Mamma's Ladoo"
 
   const upiLink = generateUPILink({
     upiId: UPI_ID,
@@ -329,7 +329,7 @@ function UPIPaymentContent() {
           <h3 className="font-bold text-lg mb-4">Need Help?</h3>
           <div className="space-y-2 text-sm text-gray-600">
             <p><strong>Issue with payment?</strong> Contact us immediately:</p>
-            <p>📧 Email: support@customacrylic.com</p>
+            <p>📧 Email: hello@mammaladoo.com</p>
             <p>📱 Phone: +91 98765 43210</p>
             <p className="text-xs text-gray-500 mt-4">
               Order Number: {orderNumber} • Amount: {formatAmount(amount)}

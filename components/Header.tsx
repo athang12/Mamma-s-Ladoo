@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingCart, Menu, X } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
 import { useState, useEffect } from 'react'
-import ThemeSelector from '@/components/theme/ThemeSelector'
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -33,11 +33,21 @@ export default function Header() {
       <nav className="container mx-auto px-4 py-3 md:py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link 
-            href="/" 
-            className="text-xl md:text-2xl font-display font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent tap-highlight-transparent"
+          <Link
+            href="/"
+            className="flex items-center gap-2 sm:gap-3 tap-highlight-transparent"
           >
-            Acrylic & Decor
+            <Image
+              src="/images/logo.png"
+              alt="Mamma's Ladoo logo"
+              width={44}
+              height={44}
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover border border-orange-200"
+              priority
+            />
+            <span className="text-lg sm:text-xl md:text-2xl font-display font-bold text-orange-700">
+              Mamma&apos;s Ladoo
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -46,7 +56,7 @@ export default function Header() {
               Home
             </Link>
             <Link href="/products" className="text-gray-700 hover:text-pink-500 transition-colors font-medium">
-              Shop All
+              Shop
             </Link>
             <Link href="/about" className="text-gray-700 hover:text-pink-500 transition-colors font-medium">
               About
@@ -58,14 +68,11 @@ export default function Header() {
 
           {/* Right side icons */}
           <div className="flex items-center space-x-2 md:space-x-4">
-            {/* Theme Selector */}
-            <ThemeSelector />
-            
             {/* Cart Icon */}
             <Link href="/cart" className="relative p-2 tap-highlight-transparent">
               <ShoppingCart className="w-6 h-6 text-gray-700 hover:text-pink-500 transition-colors" />
               {mounted && totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                   {totalItems}
                 </span>
               )}
@@ -106,7 +113,7 @@ export default function Header() {
                   className="text-lg font-semibold text-gray-800 hover:text-pink-500 transition-colors py-3 border-b tap-highlight-transparent"
                   onClick={() => setMenuOpen(false)}
                 >
-                  Shop All
+                  Shop
                 </Link>
                 <Link
                   href="/about"
@@ -122,11 +129,6 @@ export default function Header() {
                 >
                   Contact
                 </Link>
-                
-                {/* Mobile Theme Info */}
-                <div className="pt-4">
-                  <p className="text-sm text-gray-600 mb-2">Change theme from the palette icon above</p>
-                </div>
               </div>
             </div>
           </>

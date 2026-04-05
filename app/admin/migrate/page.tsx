@@ -30,12 +30,12 @@ export default function MigratePage() {
           description: product.description,
           price: product.price,
           category: product.category,
-          customizable: product.customizable,
+          customizable: false,
           stock: product.stock,
           featured: product.featured,
           default_color: product.defaultColor || 'white',
           available_colors: product.availableColors || ['white'],
-          theme_tags: product.themeTags || [],
+          theme_tags: [],
           images: product.images,
         })
         success++
@@ -152,7 +152,7 @@ export default function MigratePage() {
               <li>• All {localProducts.length} products will be imported</li>
               <li>• Product images, prices, and details will be preserved</li>
               <li>• Stock levels and categories will be imported</li>
-              <li>• Theme tags and customization settings included</li>
+              <li>• Featured product flags will be preserved</li>
               <li>• Duplicate products will be skipped (safe to run multiple times)</li>
             </ul>
           </div>

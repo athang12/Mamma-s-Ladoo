@@ -186,8 +186,8 @@ function PaymentStatusContent() {
               <div className="space-y-2 text-gray-600">
                 <p>
                   <strong>Email:</strong>{' '}
-                  <a href="mailto:support@customacrylic.com" className="text-purple-600 hover:underline">
-                    support@customacrylic.com
+                  <a href="mailto:hello@mammaladoo.com" className="text-purple-600 hover:underline">
+                    hello@mammaladoo.com
                   </a>
                 </p>
                 <p>

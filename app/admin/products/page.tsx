@@ -1,12 +1,20 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase/api'
+import { getProducts, deleteProduct } from '@/lib/supabase/api'
 import type { Product } from '@/lib/supabase/types'
 import { Pencil, Trash2, Plus, X, Save, Package } from 'lucide-react'
 import { categories } from '@/lib/data'
 
-type FormProduct = Omit<Product, 'id' | 'created_at' | 'updated_at'> & { id?: string }
+type FormProduct = {
+  id?: string
+  name: string
+  description: string
+  price: number
+  category: string
+  stock: number
+  featured: boolean
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
@@ -17,21 +25,14 @@ export default function AdminProductsPage() {
     name: '',
     description: '',
     price: 0,
-    category: 'ACRYLIC_STANDS',
-    customizable: false,
+    category: categories[0]?.slug || 'LADOOS',
     stock: 0,
     featured: false,
-    default_color: 'white',
-    available_colors: ['white'],
-    theme_tags: [],
-    images: [''],
   })
   
   // File upload states
   const [productImageFiles, setProductImageFiles] = useState<File[]>([])
-  const [templateImageFile, setTemplateImageFile] = useState<File | null>(null)
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
-  const [templatePreview, setTemplatePreview] = useState<string>('')
 
   useEffect(() => {
     loadProducts()
@@ -57,39 +58,45 @@ export default function AdminProductsPage() {
       return
     }
     
-    if (formData.customizable && !templateImageFile && !editingProduct?.id) {
-      alert('Customizable products require a template PNG')
-      return
-    }
-    
     try {
-      const formDataToSend = new FormData()
-      
-      // Add product data
-      formDataToSend.append('name', formData.name)
-      formDataToSend.append('description', formData.description || '')
-      formDataToSend.append('price', formData.price.toString())
-      formDataToSend.append('category', formData.category)
-      formDataToSend.append('stock', formData.stock.toString())
-      formDataToSend.append('customizable', formData.customizable.toString())
-      formDataToSend.append('featured', formData.featured.toString())
-      formDataToSend.append('default_color', formData.default_color)
-      formDataToSend.append('available_colors', JSON.stringify(formData.available_colors))
-      
-      // Add product images
-      productImageFiles.forEach((file, index) => {
-        formDataToSend.append(`productImage${index}`, file)
-      })
-      
-      // Add template if customizable
-      if (templateImageFile) {
-        formDataToSend.append('templateImage', templateImageFile)
+      let response: Response
+
+      if (editingProduct?.id) {
+        response = await fetch(`/api/admin/products/${editingProduct.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            description: formData.description || '',
+            price: formData.price,
+            category: formData.category,
+            stock: formData.stock,
+            featured: formData.featured,
+          }),
+        })
+      } else {
+        const formDataToSend = new FormData()
+
+        // Add product data
+        formDataToSend.append('name', formData.name)
+        formDataToSend.append('description', formData.description || '')
+        formDataToSend.append('price', formData.price.toString())
+        formDataToSend.append('category', formData.category)
+        formDataToSend.append('stock', formData.stock.toString())
+        formDataToSend.append('featured', formData.featured.toString())
+
+        // Add product images
+        productImageFiles.forEach((file, index) => {
+          formDataToSend.append(`productImage${index}`, file)
+        })
+
+        response = await fetch('/api/admin/products/create', {
+          method: 'POST',
+          body: formDataToSend,
+        })
       }
-      
-      const response = await fetch('/api/admin/products/create', {
-        method: 'POST',
-        body: formDataToSend,
-      })
       
       if (!response.ok) {
         const error = await response.json()
@@ -98,7 +105,7 @@ export default function AdminProductsPage() {
       
       await loadProducts()
       resetForm()
-      alert('Product saved successfully!')
+      alert(editingProduct ? 'Product updated successfully!' : 'Product saved successfully!')
     } catch (error) {
       console.error('Error saving product:', error)
       alert(error instanceof Error ? error.message : 'Failed to save product')
@@ -112,13 +119,8 @@ export default function AdminProductsPage() {
       description: product.description || '',
       price: Number(product.price),
       category: product.category,
-      customizable: product.customizable,
       stock: product.stock,
       featured: product.featured,
-      default_color: product.default_color || 'white',
-      available_colors: product.available_colors || ['white'],
-      theme_tags: product.theme_tags || [],
-      images: product.images.length > 0 ? product.images : [''],
       id: product.id,
     })
     setShowForm(true)
@@ -141,21 +143,14 @@ export default function AdminProductsPage() {
       name: '',
       description: '',
       price: 0,
-      category: 'ACRYLIC_STANDS',
-      customizable: false,
+      category: categories[0]?.slug || 'LADOOS',
       stock: 0,
       featured: false,
-      default_color: 'white',
-      available_colors: ['white'],
-      theme_tags: [],
-      images: [''],
     })
     setEditingProduct(null)
     setShowForm(false)
     setProductImageFiles([])
-    setTemplateImageFile(null)
     setImagePreviews([])
-    setTemplatePreview('')
   }
   
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -178,46 +173,10 @@ export default function AdminProductsPage() {
     })
   }
   
-  const handleTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
-    if (!file.type.includes('png')) {
-      alert('Template must be a PNG file')
-      return
-    }
-    
-    setTemplateImageFile(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setTemplatePreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-  
   const removeImagePreview = (index: number) => {
     setProductImageFiles(productImageFiles.filter((_, i) => i !== index))
     setImagePreviews(imagePreviews.filter((_, i) => i !== index))
   }
-
-  const toggleTheme = (theme: string) => {
-    const themes = formData.theme_tags || []
-    const newThemes = themes.includes(theme)
-      ? themes.filter(t => t !== theme)
-      : [...themes, theme]
-    setFormData({ ...formData, theme_tags: newThemes })
-  }
-
-  const toggleColor = (color: string) => {
-    const colors = formData.available_colors || []
-    const newColors = colors.includes(color)
-      ? colors.filter(c => c !== color)
-      : [...colors, color]
-    setFormData({ ...formData, available_colors: newColors })
-  }
-
-  const availableThemes = ['anime', 'motivation', 'aesthetic', 'valentine', 'custom']
-  const availableColors = ['white', 'black', 'pink', 'blue', 'purple', 'red', 'yellow', 'green']
 
   if (loading) {
     return (
@@ -273,7 +232,7 @@ export default function AdminProductsPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-400 outline-none"
-                  placeholder="Custom Photo Acrylic Stand"
+                  placeholder="Dry Fruit Ladoo"
                 />
               </div>
 
@@ -285,14 +244,14 @@ export default function AdminProductsPage() {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-400 outline-none"
                   rows={3}
-                  placeholder="Beautiful transparent acrylic stand..."
+                  placeholder="Enter ingredients or product description"
                 />
               </div>
 
               {/* Price and Stock */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-2">Price ($) *</label>
+                  <label className="block text-sm font-semibold mb-2">Price (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -323,65 +282,11 @@ export default function AdminProductsPage() {
                   className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-400 outline-none"
                 >
                   {categories.map((cat) => (
-                    <option key={cat.slug} value={cat.slug.toUpperCase()}>
+                    <option key={cat.slug} value={cat.slug}>
                       {cat.name}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Theme Tags */}
-              <div>
-                <label className="block text-sm font-semibold mb-2">Theme Tags</label>
-                <div className="flex flex-wrap gap-2">
-                  {availableThemes.map((theme) => (
-                    <button
-                      key={theme}
-                      type="button"
-                      onClick={() => toggleTheme(theme)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        (formData.theme_tags || []).includes(theme)
-                          ? 'bg-pink-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {theme}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Available Colors */}
-              <div>
-                <label className="block text-sm font-semibold mb-2">Available Colors</label>
-                <div className="flex flex-wrap gap-2">
-                  {availableColors.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      onClick={() => toggleColor(color)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors capitalize ${
-                        (formData.available_colors || []).includes(color)
-                          ? 'bg-pink-500 text-white'
-                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                      }`}
-                    >
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Default Color */}
-              <div>
-                <label className="block text-sm font-semibold mb-2">Default Color</label>
-                <input
-                  type="text"
-                  value={formData.default_color}
-                  onChange={(e) => setFormData({ ...formData, default_color: e.target.value })}
-                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-pink-400 outline-none"
-                  placeholder="white"
-                />
               </div>
 
               {/* Product Images Upload */}
@@ -423,52 +328,8 @@ export default function AdminProductsPage() {
                 </div>
               </div>
               
-              {/* Template Image for Customizable Products */}
-              {formData.customizable && (
-                <div>
-                  <label className="block text-sm font-semibold mb-2">Template Image (PNG with transparent area)</label>
-                  <p className="text-sm text-gray-600 mb-3">Upload a PNG with transparent area for customization clipping</p>
-                  
-                  {templatePreview ? (
-                    <div className="relative w-64 h-64 border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-100">
-                      <img src={templatePreview} alt="Template" className="w-full h-full object-contain" />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setTemplateImageFile(null)
-                          setTemplatePreview('')
-                        }}
-                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="w-64 h-64 border-2 border-dashed border-gray-300 rounded-lg hover:border-pink-500 hover:bg-pink-50 transition-all cursor-pointer flex flex-col items-center justify-center">
-                      <Package className="w-8 h-8 text-gray-400 mb-2" />
-                      <span className="text-sm text-gray-600">Upload Template PNG</span>
-                      <input
-                        type="file"
-                        accept="image/png"
-                        onChange={handleTemplateUpload}
-                        className="hidden"
-                      />
-                    </label>
-                  )}
-                </div>
-              )}
-
               {/* Toggles */}
               <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.customizable}
-                    onChange={(e) => setFormData({ ...formData, customizable: e.target.checked })}
-                    className="w-5 h-5 text-pink-600 rounded focus:ring-pink-500"
-                  />
-                  <span className="font-medium">Customizable</span>
-                </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -531,9 +392,6 @@ export default function AdminProductsPage() {
                       <div>
                         <div className="font-semibold">{product.name}</div>
                         <div className="text-sm text-gray-500 flex gap-2">
-                          {product.customizable && (
-                            <span className="text-purple-600">Custom</span>
-                          )}
                           {product.featured && (
                             <span className="text-pink-600">Featured</span>
                           )}
@@ -543,12 +401,12 @@ export default function AdminProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className="text-sm text-gray-600">
-                      {categories.find(c => c.slug.toUpperCase() === product.category)?.name || product.category}
+                      {categories.find(c => c.slug === product.category)?.name || product.category}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className="font-semibold text-pink-600">
-                      ${Number(product.price).toFixed(2)}
+                      ₹{Number(product.price).toFixed(2)}
                     </span>
                   </td>
                   <td className="px-6 py-4">

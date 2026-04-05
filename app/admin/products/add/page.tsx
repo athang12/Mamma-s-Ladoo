@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Upload, X, Check } from 'lucide-react'
 import Link from 'next/link'
+import { categories } from '@/lib/data'
 
 export default function AddProductPage() {
   const router = useRouter()
@@ -12,18 +13,13 @@ export default function AddProductPage() {
     name: '',
     description: '',
     price: '',
-    category: 'ACRYLIC_STANDS',
+    category: categories[0]?.slug || 'LADOOS',
     stock: '10',
-    customizable: false,
     featured: false,
-    default_color: 'white',
-    available_colors: ['white'],
   })
   
   const [productImages, setProductImages] = useState<File[]>([])
-  const [templateImage, setTemplateImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string[]>([])
-  const [templatePreview, setTemplatePreview] = useState<string>('')
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -44,23 +40,6 @@ export default function AddProductPage() {
     })
   }
 
-  const handleTemplateUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
-    if (!file.type.includes('png')) {
-      alert('Template must be a PNG file')
-      return
-    }
-    
-    setTemplateImage(file)
-    const reader = new FileReader()
-    reader.onloadend = () => {
-      setTemplatePreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-  }
-
   const removeImage = (index: number) => {
     setProductImages(productImages.filter((_, i) => i !== index))
     setImagePreview(imagePreview.filter((_, i) => i !== index))
@@ -71,11 +50,6 @@ export default function AddProductPage() {
     
     if (productImages.length === 0) {
       alert('Please upload at least one product image')
-      return
-    }
-    
-    if (formData.customizable && !templateImage) {
-      alert('Customizable products require a template PNG with transparent area')
       return
     }
     
@@ -90,20 +64,12 @@ export default function AddProductPage() {
       formDataToSend.append('price', formData.price)
       formDataToSend.append('category', formData.category)
       formDataToSend.append('stock', formData.stock)
-      formDataToSend.append('customizable', formData.customizable.toString())
       formDataToSend.append('featured', formData.featured.toString())
-      formDataToSend.append('default_color', formData.default_color)
-      formDataToSend.append('available_colors', JSON.stringify(formData.available_colors))
       
       // Add product images
       productImages.forEach((file, index) => {
         formDataToSend.append(`productImage${index}`, file)
       })
-      
-      // Add template if customizable
-      if (templateImage) {
-        formDataToSend.append('templateImage', templateImage)
-      }
       
       const response = await fetch('/api/admin/products/create', {
         method: 'POST',
@@ -124,19 +90,6 @@ export default function AddProductPage() {
       setLoading(false)
     }
   }
-
-  const categories = [
-    { value: 'ACRYLIC_STANDS', label: 'Acrylic Stands' },
-    { value: 'COFFEE_MUGS', label: 'Coffee Mugs' },
-    { value: 'JIGSAW_PUZZLES', label: 'Jigsaw Puzzles' },
-    { value: 'HANDKERCHIEFS', label: 'Handkerchiefs' },
-    { value: 'TOTE_BAGS', label: 'Tote Bags' },
-    { value: 'DAILY_PLANNERS', label: 'Daily Planners' },
-    { value: 'WALL_FRAMES', label: 'Wall Frames' },
-    { value: 'FRIDGE_MAGNETS', label: 'Fridge Magnets' },
-  ]
-
-  const colors = ['white', 'black', 'red', 'blue', 'green', 'yellow', 'pink', 'purple']
 
   return (
     <div>
@@ -169,7 +122,7 @@ export default function AddProductPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="e.g., Personalized Acrylic Stand"
+                placeholder="e.g., Dry Fruit Ladoo"
               />
             </div>
 
@@ -184,7 +137,7 @@ export default function AddProductPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
               >
                 {categories.map(cat => (
-                  <option key={cat.value} value={cat.value}>{cat.label}</option>
+                  <option key={cat.slug} value={cat.slug}>{cat.name}</option>
                 ))}
               </select>
             </div>
@@ -275,62 +228,11 @@ export default function AddProductPage() {
           </div>
         </div>
 
-        {/* Customization Options */}
+        {/* Product Visibility */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Customization Options</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Product Visibility</h2>
           
           <div className="space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={formData.customizable}
-                onChange={(e) => setFormData({...formData, customizable: e.target.checked})}
-                className="w-5 h-5 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-              />
-              <div>
-                <span className="font-medium text-gray-900">Make this product customizable</span>
-                <p className="text-sm text-gray-600">Allow customers to upload images and customize this product</p>
-              </div>
-            </label>
-
-            {formData.customizable && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Template Image (PNG with transparent area) *
-                </label>
-                <p className="text-sm text-gray-600 mb-4">
-                  Upload a PNG image with a transparent area where the custom design will appear. The transparent area defines the clipping boundary.
-                </p>
-                
-                {templatePreview ? (
-                  <div className="relative w-64 h-64 border-2 border-gray-200 rounded-lg overflow-hidden bg-gray-100">
-                    <img src={templatePreview} alt="Template" className="w-full h-full object-contain" />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTemplateImage(null)
-                        setTemplatePreview('')
-                      }}
-                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="w-64 h-64 border-2 border-dashed border-gray-300 rounded-lg hover:border-purple-500 hover:bg-purple-50 transition-all cursor-pointer flex flex-col items-center justify-center">
-                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
-                    <span className="text-sm text-gray-600">Upload Template PNG</span>
-                    <input
-                      type="file"
-                      accept="image/png"
-                      onChange={handleTemplateUpload}
-                      className="hidden"
-                    />
-                  </label>
-                )}
-              </div>
-            )}
-
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -340,37 +242,6 @@ export default function AddProductPage() {
               />
               <span className="font-medium text-gray-900">Featured product</span>
             </label>
-          </div>
-        </div>
-
-        {/* Colors */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Available Colors</h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {colors.map(color => (
-              <label key={color} className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.available_colors.includes(color)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setFormData({
-                        ...formData,
-                        available_colors: [...formData.available_colors, color]
-                      })
-                    } else {
-                      setFormData({
-                        ...formData,
-                        available_colors: formData.available_colors.filter(c => c !== color)
-                      })
-                    }
-                  }}
-                  className="w-4 h-4 text-purple-600 rounded focus:ring-2 focus:ring-purple-500"
-                />
-                <span className="capitalize">{color}</span>
-              </label>
-            ))}
           </div>
         </div>
 

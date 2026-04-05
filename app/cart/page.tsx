@@ -15,7 +15,7 @@ export default function CartPage() {
           Your Cart is Empty
         </h1>
         <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-          Add some products to get started!
+          Add your favorite ladoos and snacks to get started.
         </p>
         <Link href="/products" className="btn-primary inline-block tap-highlight-transparent">
           Continue Shopping
@@ -39,7 +39,7 @@ export default function CartPage() {
                 <img
                   src={item.product.thumbnailUrl}
                   alt={item.product.name}
-                  className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 object-cover rounded-lg sm:rounded-xl flex-shrink-0"
+                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg sm:rounded-xl flex-shrink-0"
                   loading="lazy"
                 />
                 
@@ -50,16 +50,10 @@ export default function CartPage() {
                   <p className="text-pink-600 font-bold mb-2 text-sm sm:text-base">
                     ₹{item.product.basePrice.toFixed(2)}
                   </p>
-                  {item.customImageUrl && (
-                    <p className="text-xs sm:text-sm text-gray-600 mb-2">
-                      <span className="font-semibold">Customized</span>
-                    </p>
-                  )}
-                  
                   <div className="flex items-center space-x-2 sm:space-x-3">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center tap-highlight-transparent"
+                      className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center tap-highlight-transparent"
                       aria-label="Decrease quantity"
                     >
                       <Minus className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -69,7 +63,7 @@ export default function CartPage() {
                     </span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center tap-highlight-transparent"
+                      className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center tap-highlight-transparent"
                       aria-label="Increase quantity"
                     >
                       <Plus className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -109,7 +103,7 @@ export default function CartPage() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Shipping</span>
                 <span className="font-semibold">
-                  {getTotalPrice() >= 50 ? 'FREE' : '₹5.99'}
+                  {getTotalPrice() >= 500 ? 'FREE' : '₹40.00'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -119,14 +113,14 @@ export default function CartPage() {
               <div className="border-t pt-2 sm:pt-3 flex justify-between">
                 <span className="text-lg sm:text-xl font-bold">Total</span>
                 <span className="text-lg sm:text-xl font-bold text-pink-600">
-                  ₹{(getTotalPrice() * 1.1 + (getTotalPrice() >= 50 ? 0 : 5.99)).toFixed(2)}
+                  ₹{(getTotalPrice() * 1.1 + (getTotalPrice() >= 500 ? 0 : 40)).toFixed(2)}
                 </span>
               </div>
             </div>
 
-            {getTotalPrice() < 50 && (
+            {getTotalPrice() < 500 && (
               <div className="bg-pink-50 text-pink-700 p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 text-xs sm:text-sm">
-                Add ₹{(50 - getTotalPrice()).toFixed(2)} more to get free shipping!
+                Add ₹{(500 - getTotalPrice()).toFixed(2)} more to get free shipping!
               </div>
             )}
 

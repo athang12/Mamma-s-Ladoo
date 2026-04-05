@@ -12,10 +12,10 @@ export async function POST(request: NextRequest) {
     const price = parseFloat(formData.get('price') as string)
     const category = formData.get('category') as string
     const stock = parseInt(formData.get('stock') as string)
-    const customizable = formData.get('customizable') === 'true'
     const featured = formData.get('featured') === 'true'
-    const default_color = formData.get('default_color') as string
-    const available_colors = JSON.parse(formData.get('available_colors') as string)
+    const customizable = false
+    const default_color = 'white'
+    const available_colors = ['white']
 
     // Upload product images to Supabase Storage
     const imageUrls: string[] = []
@@ -59,43 +59,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload template image if customizable
-    let templateImageUrl: string | null = null
-    
-    if (customizable) {
-      const templateFile = formData.get('templateImage') as File
-      
-      if (!templateFile) {
-        return NextResponse.json(
-          { error: 'Template image is required for customizable products' },
-          { status: 400 }
-        )
-      }
-      
-      const timestamp = Date.now()
-      const fileName = `${name.replace(/\s+/g, '-').toLowerCase()}-template-${timestamp}.png`
-      const filePath = `templates/${fileName}`
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('product-templates')
-        .upload(filePath, templateFile, {
-          contentType: 'image/png',
-          upsert: false,
-        })
-      
-      if (uploadError) {
-        console.error('Template upload error:', uploadError)
-        throw new Error('Failed to upload template image')
-      }
-      
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-templates')
-        .getPublicUrl(filePath)
-      
-      templateImageUrl = publicUrl
-    }
-
     // Create product in database
     const { data: product, error: dbError } = await supabase
       .from('products')
@@ -110,7 +73,7 @@ export async function POST(request: NextRequest) {
         default_color,
         available_colors,
         images: imageUrls,
-        template_image: templateImageUrl,
+        template_image: null,
         theme_tags: [],
       })
       .select()

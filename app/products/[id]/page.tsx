@@ -8,6 +8,7 @@ import type { Product } from '@/lib/supabase/types'
 import { ShoppingCart, Heart, ArrowLeft, Truck, Shield, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react'
 import { productColors } from '@/lib/data'
 import Link from 'next/link'
+import { parseIngredientList } from '@/lib/utils/descriptionFormat'
 
 export default function ProductDetailPage() {
   const params = useParams()
@@ -99,6 +100,8 @@ export default function ProductDetailPage() {
     )
   }
 
+  const ingredientItems = parseIngredientList(product.description)
+
   return (
     <div className="container mx-auto px-4 py-12">
       <button
@@ -118,14 +121,14 @@ export default function ProductDetailPage() {
         <span className="text-gray-900">{product.name}</span>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-12">
+      <div className="grid md:grid-cols-2 gap-8 md:gap-12">
         {/* Product Images */}
         <div>
           <div className="card overflow-hidden mb-4 relative group">
             <img
               src={product.images[currentImageIndex] || product.images[0]}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
-              className="w-full h-96 object-cover"
+              className="w-full h-72 sm:h-80 md:h-96 object-cover"
             />
             
             {/* Image Navigation - Only show if multiple images */}
@@ -135,7 +138,7 @@ export default function ProductDetailPage() {
                   onClick={() => setCurrentImageIndex((prev) => 
                     prev === 0 ? product.images.length - 1 : prev - 1
                   )}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   aria-label="Previous image"
                 >
                   <ChevronLeft className="w-6 h-6 text-gray-800" />
@@ -144,7 +147,7 @@ export default function ProductDetailPage() {
                   onClick={() => setCurrentImageIndex((prev) => 
                     (prev + 1) % product.images.length
                   )}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                   aria-label="Next image"
                 >
                   <ChevronRight className="w-6 h-6 text-gray-800" />
@@ -179,13 +182,24 @@ export default function ProductDetailPage() {
 
         {/* Product Info */}
         <div>
-          <h1 className="text-4xl font-display font-bold mb-4">{product.name}</h1>
+          <h1 className="text-3xl sm:text-4xl font-display font-bold mb-4">{product.name}</h1>
 
           <div className="text-4xl font-bold text-pink-600 mb-6">
             ₹{Number(product.price).toFixed(2)}
           </div>
 
-          <p className="text-gray-600 mb-6 leading-relaxed">{product.description}</p>
+          {ingredientItems.length > 0 ? (
+            <div className="mb-6">
+              <h3 className="font-semibold mb-2 text-gray-800">Ingredients</h3>
+              <ul className="space-y-1.5 text-gray-600">
+                {ingredientItems.map((item, index) => (
+                  <li key={index} className="leading-relaxed">• {item}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p className="text-gray-600 mb-6 leading-relaxed">{product.description}</p>
+          )}
 
           {/* Color Selection */}
           {product.available_colors && product.available_colors.length > 0 && (
@@ -236,23 +250,14 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex space-x-4 mb-8">
-            {product.customizable ? (
-              <Link
-                href={`/customize/${product.id}`}
-                className="btn-primary flex-1 text-center"
-              >
-                Customize & Add to Cart
-              </Link>
-            ) : (
-              <button 
-                onClick={handleAddToCart} 
-                disabled={product.stock === 0}
-                className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
-              >
-                <ShoppingCart className="w-5 h-5 mr-2" />
-                Add to Cart
-              </button>
-            )}
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock === 0}
+              className="btn-primary flex-1 flex items-center justify-center disabled:opacity-50"
+            >
+              <ShoppingCart className="w-5 h-5 mr-2" />
+              Add to Cart
+            </button>
             <button 
               onClick={() => setLiked(!liked)}
               className="btn-secondary w-14 flex items-center justify-center"
@@ -262,21 +267,21 @@ export default function ProductDetailPage() {
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div className="text-center p-4 bg-pink-50 rounded-xl">
               <Truck className="w-6 h-6 mx-auto mb-2 text-pink-600" />
               <p className="text-sm font-semibold">Free Shipping</p>
-              <p className="text-xs text-gray-600">On orders $50+</p>
+              <p className="text-xs text-gray-600">On orders above Rs. 500</p>
             </div>
             <div className="text-center p-4 bg-purple-50 rounded-xl">
               <Shield className="w-6 h-6 mx-auto mb-2 text-purple-600" />
-              <p className="text-sm font-semibold">Quality Guarantee</p>
-              <p className="text-xs text-gray-600">Premium materials</p>
+              <p className="text-sm font-semibold">Freshness Promise</p>
+              <p className="text-xs text-gray-600">Quality ingredients</p>
             </div>
             <div className="text-center p-4 bg-blue-50 rounded-xl">
               <RefreshCw className="w-6 h-6 mx-auto mb-2 text-blue-600" />
               <p className="text-sm font-semibold">Easy Returns</p>
-              <p className="text-xs text-gray-600">30-day policy</p>
+              <p className="text-xs text-gray-600">Quick support</p>
             </div>
           </div>
         </div>

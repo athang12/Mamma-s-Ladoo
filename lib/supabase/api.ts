@@ -1,6 +1,50 @@
 // API functions for interacting with Supabase database
 import { supabase } from './client'
 import type { Product, Order, OrderItem, Database } from './types'
+import { ladooFallbackProducts } from '@/lib/ladooCatalog'
+
+const allowedStoreCategories = new Set([
+  'LADOOS',
+  'LADOOS_DRYFRUIT',
+  'SNACKS',
+  'DRY_SNACKS',
+  'GIFT_BOXES',
+  'LIGHT_SWEETS',
+])
+
+const fallbackImageByName: Record<string, string> = {
+  'fresh ladoos': '/images/Gond.jpg',
+  'indian snacks platter': '/images/Oats_Makhana.jpg',
+}
+
+const withSafeImages = (product: Product): Product => {
+  const cleanedImages = Array.isArray(product.images)
+    ? product.images.filter((img) => typeof img === 'string' && img.trim().length > 0)
+    : []
+
+  if (cleanedImages.length > 0) {
+    return {
+      ...product,
+      images: cleanedImages,
+    }
+  }
+
+  const nameKey = product.name.trim().toLowerCase()
+  const fallback = fallbackImageByName[nameKey] || '/images/Dry_Fruit.jpg'
+
+  return {
+    ...product,
+    images: [fallback],
+  }
+}
+
+const normalizeStoreProducts = (products: Product[]): Product[] => {
+  const filtered = products.filter((product) => allowedStoreCategories.has(product.category))
+  return filtered.map(withSafeImages)
+}
+
+const getFallbackByCategory = (category: string) =>
+  ladooFallbackProducts.filter((product) => product.category === category)
 
 // =====================================================
 // PRODUCTS API
@@ -12,8 +56,13 @@ export const getProducts = async () => {
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) throw error
-  return data as Product[]
+  if (error) {
+    console.warn('Supabase unavailable in getProducts, using fallback catalog:', error.message)
+    return ladooFallbackProducts
+  }
+
+  const products = normalizeStoreProducts((data as Product[]) || [])
+  return products.length > 0 ? products : ladooFallbackProducts
 }
 
 export const getProductById = async (id: string) => {
@@ -23,8 +72,19 @@ export const getProductById = async (id: string) => {
     .eq('id', id)
     .single()
 
-  if (error) throw error
-  return data as Product
+  if (error) {
+    const fallbackProduct = ladooFallbackProducts.find((product) => product.id === id)
+    if (fallbackProduct) return fallbackProduct
+    throw error
+  }
+
+  const product = withSafeImages(data as Product)
+  if (!allowedStoreCategories.has(product.category)) {
+    const fallbackProduct = ladooFallbackProducts.find((item) => item.id === id)
+    if (fallbackProduct) return fallbackProduct
+  }
+
+  return product
 }
 
 export const getProductsByCategory = async (category: string) => {
@@ -34,8 +94,13 @@ export const getProductsByCategory = async (category: string) => {
     .eq('category', category)
     .order('name')
 
-  if (error) throw error
-  return data as Product[]
+  if (error) {
+    console.warn('Supabase unavailable in getProductsByCategory, using fallback catalog:', error.message)
+    return getFallbackByCategory(category)
+  }
+
+  const products = normalizeStoreProducts((data as Product[]) || [])
+  return products.length > 0 ? products : getFallbackByCategory(category)
 }
 
 export const getFeaturedProducts = async () => {
@@ -45,8 +110,15 @@ export const getFeaturedProducts = async () => {
     .eq('featured', true)
     .order('name')
 
-  if (error) throw error
-  return data as Product[]
+  if (error) {
+    console.warn('Supabase unavailable in getFeaturedProducts, using fallback catalog:', error.message)
+    return ladooFallbackProducts.filter((product) => product.featured)
+  }
+
+  const products = normalizeStoreProducts((data as Product[]) || [])
+  return products.length > 0
+    ? products
+    : ladooFallbackProducts.filter((product) => product.featured)
 }
 
 export const createProduct = async (product: Database['public']['Tables']['products']['Insert']) => {

@@ -1,6 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const productId = params.id
+    const supabase = await createClient()
+    const body = await request.json()
+
+    const updates = {
+      name: body.name,
+      description: body.description || '',
+      price: Number(body.price),
+      category: body.category,
+      stock: Number(body.stock),
+      featured: Boolean(body.featured),
+    }
+
+    const { data, error } = await supabase
+      .from('products')
+      .update(updates)
+      .eq('id', productId)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Update error:', error)
+      return NextResponse.json(
+        { error: 'Failed to update product' },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ success: true, product: data })
+  } catch (error) {
+    console.error('Update product error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }

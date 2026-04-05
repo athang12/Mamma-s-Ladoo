@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CreditCard, Lock, CheckCircle, Smartphone, AlertCircle } from 'lucide-react'
 import { createOrder } from '@/lib/supabase/api'
-import { uploadCustomImageFromDataURL } from '@/lib/supabase/client'
 import { generateUniqueAmount } from '@/lib/upi/utils'
 import OTPVerificationModal from '@/components/checkout/OTPVerificationModal'
 
@@ -39,9 +38,9 @@ export default function CheckoutPage() {
       return
     }
 
-    // Check minimum amount for UPI payments (most banks require ₹50 minimum)
+    // Check minimum amount for UPI payments (most banks require Rs. 50 minimum)
     const subtotal = getTotalPrice()
-    const shipping = subtotal >= 50 ? 0 : 5.99
+    const shipping = subtotal >= 500 ? 0 : 40
     const tax = subtotal * 0.1
     const total = subtotal + shipping + tax
 
@@ -84,31 +83,9 @@ export default function CheckoutPage() {
     setProcessing(true)
     
     try {
-      // Upload custom images to Supabase Storage if any
-      const itemsWithUploadedImages = await Promise.all(
-        items.map(async (item) => {
-          if (item.customImageUrl && item.customImageUrl.startsWith('data:')) {
-            try {
-              // Generate unique filename
-              const filename = `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}.png`
-              const uploadResult = await uploadCustomImageFromDataURL(item.customImageUrl, filename)
-              
-              return {
-                ...item,
-                customImageUrl: uploadResult.url,
-              }
-            } catch (error) {
-              console.error('Error uploading custom image:', error)
-              return item
-            }
-          }
-          return item
-        })
-      )
-
       // Calculate order totals
       const subtotal = getTotalPrice()
-      const shipping = subtotal >= 50 ? 0 : 5.99
+      const shipping = subtotal >= 500 ? 0 : 40
       const tax = subtotal * 0.1
       let total = subtotal + shipping + tax
 
@@ -140,16 +117,16 @@ export default function CheckoutPage() {
         delivered_at: null,
       }
 
-      const orderItems = itemsWithUploadedImages.map((item) => ({
+      const orderItems = items.map((item) => ({
         product_id: item.productId,
         product_name: item.product.name,
         product_price: item.product.basePrice,
         quantity: item.quantity,
         selected_color: item.selectedColor,
         selected_size: null, // Size not implemented yet
-        is_custom: !!item.customImageUrl,
-        custom_image_url: item.customImageUrl || null,
-        custom_image_data: item.customImageData || null,
+        is_custom: false,
+        custom_image_url: null,
+        custom_image_data: null,
         item_total: item.totalPrice,
       }))
 
@@ -238,7 +215,7 @@ export default function CheckoutPage() {
   }
 
   const subtotal = getTotalPrice()
-  const shipping = subtotal >= 50 ? 0 : 5.99
+  const shipping = subtotal >= 500 ? 0 : 40
   const tax = subtotal * 0.1
   const total = subtotal + shipping + tax
 
@@ -262,8 +239,8 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <h1 className="text-4xl font-display font-bold mb-8">Checkout</h1>
+    <div className="container mx-auto px-4 py-8 sm:py-10 md:py-12">
+      <h1 className="text-3xl sm:text-4xl font-display font-bold mb-6 sm:mb-8">Checkout</h1>
 
       {/* OTP Verification Modal */}
       <OTPVerificationModal
@@ -273,13 +250,13 @@ export default function CheckoutPage() {
         onClose={handleCloseOTPModal}
       />
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid lg:grid-cols-3 gap-5 sm:gap-8">
         {/* Checkout Form */}
         <div className="lg:col-span-2">
-          <form id="checkout-form" onSubmit={handleSubmit} className="space-y-6">
+          <form id="checkout-form" onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Contact Information */}
-            <div className="card p-6">
-              <h2 className="text-2xl font-bold mb-6">Contact Information</h2>
+            <div className="card p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Contact Information</h2>
               
               <div className="space-y-4">
                 <div>
@@ -291,7 +268,8 @@ export default function CheckoutPage() {
                     value={formData.name}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="John Doe"
+                    autoComplete="name"
+                    placeholder="Your full name"
                   />
                 </div>
 
@@ -305,7 +283,8 @@ export default function CheckoutPage() {
                       value={formData.email}
                       onChange={handleChange}
                       className="input-field"
-                      placeholder="john@example.com"
+                      autoComplete="email"
+                      placeholder="you@example.com"
                     />
                   </div>
                   <div>
@@ -316,7 +295,9 @@ export default function CheckoutPage() {
                       value={formData.phone}
                       onChange={handleChange}
                       className="input-field"
-                      placeholder="+1 (555) 123-4567"
+                      autoComplete="tel"
+                      inputMode="tel"
+                      placeholder="10-digit mobile number"
                     />
                   </div>
                 </div>
@@ -324,8 +305,8 @@ export default function CheckoutPage() {
             </div>
 
             {/* Shipping Address */}
-            <div className="card p-6">
-              <h2 className="text-2xl font-bold mb-6">Shipping Address</h2>
+            <div className="card p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Delivery Address</h2>
               
               <div className="space-y-4">
                 <div>
@@ -337,7 +318,8 @@ export default function CheckoutPage() {
                     value={formData.address}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="123 Main Street"
+                    autoComplete="street-address"
+                    placeholder="House no, street, area"
                   />
                 </div>
 
@@ -351,6 +333,7 @@ export default function CheckoutPage() {
                       value={formData.city}
                       onChange={handleChange}
                       className="input-field"
+                      autoComplete="address-level2"
                       placeholder="Mumbai"
                     />
                   </div>
@@ -362,6 +345,7 @@ export default function CheckoutPage() {
                       value={formData.state}
                       onChange={handleChange}
                       className="input-field"
+                      autoComplete="address-level1"
                       placeholder="Maharashtra"
                     />
                   </div>
@@ -374,6 +358,8 @@ export default function CheckoutPage() {
                       value={formData.postalCode}
                       onChange={handleChange}
                       className="input-field"
+                      inputMode="numeric"
+                      autoComplete="postal-code"
                       placeholder="400001"
                     />
                   </div>
@@ -399,8 +385,8 @@ export default function CheckoutPage() {
             </div>
 
             {/* Payment Method */}
-            <div className="card p-6">
-              <h2 className="text-2xl font-bold mb-6">Payment Method</h2>
+            <div className="card p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Payment Method</h2>
               
               <div className="space-y-3">
                 {/* Cash on Delivery */}
@@ -411,9 +397,9 @@ export default function CheckoutPage() {
                     value="COD"
                     checked={formData.paymentMethod === 'COD'}
                     onChange={handleChange}
-                    className="mr-3"
+                    className="mr-3 align-top mt-1"
                   />
-                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200">
+                  <div className="flex items-start gap-3 bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-200">
                     <CreditCard className="w-6 h-6 text-green-600" />
                     <div>
                       <span className="font-semibold block">Cash on Delivery (COD)</span>
@@ -430,9 +416,9 @@ export default function CheckoutPage() {
                     value="UPI_SMS"
                     checked={formData.paymentMethod === 'UPI_SMS'}
                     onChange={handleChange}
-                    className="mr-3"
+                    className="mr-3 align-top mt-1"
                   />
-                  <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border-2 border-blue-200">
+                  <div className="flex items-start gap-3 bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border-2 border-blue-200">
                     <Smartphone className="w-6 h-6 text-blue-600" />
                     <div>
                       <span className="font-semibold block">UPI Payment</span>
@@ -467,7 +453,7 @@ export default function CheckoutPage() {
             <button 
               type="submit" 
               disabled={processing}
-              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
             >
               {processing 
                 ? 'Processing...' 
@@ -487,8 +473,8 @@ export default function CheckoutPage() {
 
         {/* Order Summary */}
         <div className="lg:col-span-1">
-          <div className="card p-6 sticky top-24">
-            <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+          <div className="card p-4 sm:p-6 lg:sticky lg:top-24">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Order Summary</h2>
             
             <div className="space-y-4 mb-6">
               {items.map((item) => (
@@ -496,7 +482,7 @@ export default function CheckoutPage() {
                   <img
                     src={item.product.thumbnailUrl}
                     alt={item.product.name}
-                    className="w-16 h-16 object-cover rounded-lg"
+                    className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
                   />
                   <div className="flex-1">
                     <p className="font-semibold text-sm">{item.product.name}</p>

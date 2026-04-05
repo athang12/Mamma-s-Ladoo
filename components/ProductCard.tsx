@@ -1,17 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Heart, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
 import { useState, useEffect } from 'react'
-import { productColors } from '@/lib/data'
 import type { Product } from '@/lib/supabase/types'
+import { parseIngredientList } from '@/lib/utils/descriptionFormat'
 
 export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem)
   const [liked, setLiked] = useState(false)
-  const [selectedColor, setSelectedColor] = useState(product.default_color || 'white')
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const ingredientItems = parseIngredientList(product.description)
   
   // Auto-rotate images every 3 seconds
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function ProductCard({ product }: { product: Product }) {
         basePrice: Number(product.price),
       },
       quantity: 1,
-      selectedColor: selectedColor,
+      selectedColor: 'standard',
     })
   }
 
@@ -59,17 +59,18 @@ export default function ProductCard({ product }: { product: Product }) {
       HANDKERCHIEFS: 'Handkerchief',
       TOTE_BAGS: 'Tote Bag',
       DAILY_PLANNERS: 'Planner',
-      ACRYLIC_STANDS: 'Acrylic Stand',
-      WALL_FRAMES: 'Frame',
-      FRIDGE_MAGNETS: 'Magnet',
+      ACRYLIC_STANDS: 'Ladoo',
+      WALL_FRAMES: 'Snack Box',
+      FRIDGE_MAGNETS: 'Namkeen',
+      LADOOS: 'Ladoo',
+      SNACKS: 'Snack',
+      DRY_SNACKS: 'Dry Snack',
+      GIFT_BOXES: 'Gift Box',
     }
     return mapping[cat] || cat
   }
 
-  // Use new canvas-based customizer for customizable products
-  const productLink = product.customizable 
-    ? `/customize-new/${product.id}` 
-    : `/products/${product.id}`
+  const productLink = `/products/${product.id}`
 
   return (
     <div className="card group h-full flex flex-col">
@@ -86,14 +87,14 @@ export default function ProductCard({ product }: { product: Product }) {
             <>
               <button
                 onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="w-5 h-5 text-gray-800" />
               </button>
               <button
                 onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Next image"
               >
                 <ChevronRight className="w-5 h-5 text-gray-800" />
@@ -128,13 +129,6 @@ export default function ProductCard({ product }: { product: Product }) {
             </div>
           </div>
 
-          {product.customizable && (
-            <div className="absolute top-2 left-2 sm:top-3 sm:left-3 mt-8 bg-gradient-to-r from-pink-500 to-purple-600 text-white px-2 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold shadow-lg flex items-center gap-1">
-              <Sparkles className="w-3 h-3" />
-              <span>Custom</span>
-            </div>
-          )}
-          
           <button
             onClick={(e) => {
               e.preventDefault()
@@ -153,40 +147,22 @@ export default function ProductCard({ product }: { product: Product }) {
           <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2 line-clamp-1">
             {product.name}
           </h3>
-          <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
-            {product.description}
-          </p>
-          
-          {/* Color Selector */}
-          {product.available_colors && product.available_colors.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs text-gray-500 mb-1.5">
-                Color: <span className="capitalize font-medium">{selectedColor}</span>
-              </p>
-              <div className="flex gap-1.5">
-                {product.available_colors.map((colorKey) => {
-                  const color = productColors[colorKey as keyof typeof productColors]
-                  if (!color) return null
-                  return (
-                    <button
-                      key={colorKey}
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setSelectedColor(colorKey)
-                      }}
-                      className={`w-6 h-6 rounded-full border-2 transition-all hover:scale-110 ${
-                        selectedColor === colorKey
-                          ? 'border-pink-500 ring-2 ring-pink-200'
-                          : 'border-gray-300'
-                      }`}
-                      style={{ backgroundColor: color.hex }}
-                      title={color.name}
-                      aria-label={`Select ${color.name}`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
+
+          {ingredientItems.length > 0 ? (
+            <ul className="text-gray-600 text-xs sm:text-sm mb-3 space-y-1">
+              {ingredientItems.slice(0, 3).map((item, index) => (
+                <li key={index} className="leading-snug">• {item}</li>
+              ))}
+              {ingredientItems.length > 3 && (
+                <li className="text-[11px] sm:text-xs text-gray-500">
+                  +{ingredientItems.length - 3} more ingredients
+                </li>
+              )}
+            </ul>
+          ) : (
+            <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
+              {product.description}
+            </p>
           )}
           
           <div className="flex items-center justify-between mt-auto">
