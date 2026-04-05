@@ -1,0 +1,23 @@
+
+> custom-acrylic-store@1.0.0 build
+> next build
+
+  ▲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./app/api/admin/products/[id]/route.ts:45:16
+Type error: Parameter 'url' implicitly has an 'any' type.
+
+[0m [90m 43 |[39m       [36mif[39m (product[33m.[39mimages [33m&&[39m product[33m.[39mimages[33m.[39mlength [33m>[39m [35m0[39m) {[0m
+[0m [90m 44 |[39m         [36mconst[39m imagePaths [33m=[39m product[33m.[39mimages[0m
+[0m[31m[1m>[22m[39m[90m 45 |[39m           [33m.[39mmap(url [33m=>[39m {[0m
+[0m [90m    |[39m                [31m[1m^[22m[39m[0m
+[0m [90m 46 |[39m             [36mconst[39m match [33m=[39m url[33m.[39mmatch([35m/product-images\/(.+)$/[39m)[0m
+[0m [90m 47 |[39m             [36mreturn[39m match [33m?[39m match[[35m1[39m] [33m:[39m [36mnull[39m[0m
+[0m [90m 48 |[39m           })[0m
+Next.js build worker exited with code: 1 and signal: null

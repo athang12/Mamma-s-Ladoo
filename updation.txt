@@ -1,0 +1,27 @@
+Here are the changes i need in my site, I am adding changes i want  :
+
+Step 1 : arrange and organise all the to dos step by step, first lets plan properly make a blueprint and then we will move forward, we will move step by step reiterate over each step until it is perfect before moving to the next task, add anything if you think is missing ask anything if you have any confusion
+
+to dos : 
+
+->all the folder must arranged in such a way that modification and finding is easy
+->The site must have 4 themes Anime, Daily Motivation, Asthetic, Valentine. Each theme must have a different theme aligning to it's name use images if you can, or else leave gap for images i will give you images, for eg anime thene must look like anime, valetine msu tbe with pink theme etc etc a very good ui
+->the site must be mobile friendly this is really important as most of users will be mobile users
+
+->add new items, each item must 
+->->the products are in two types prebuild / make your own
+->->prebuild will have a range of items (each under different tags fomr above anime, daily motivation, asthetic, valentines) but custom will have only a simple product which user can customise(I will tell you about customisation below)
+->->small description of item
+->->color option for the item (default every has white color), if i add or select other color the image must changes
+->->items to add : coffee mug, jigsaw puzzle, handkerchief, zipper tote bag, daily planner
+
+->If make your own option is selected
+->->step1 : each item will have upload image option 
+->->step2 : Once the user upload the image he can rotate adjust the image on the specific pre given part of the product to see how the item will look with the custom image printed over it
+->-> step3 : Preview and then place an order
+
+->Where and how to handle database i need free database resources only
+
+->i need to add phone pe upi payment integration and a cod option also
+
+->last step is deployment how and where to deploy

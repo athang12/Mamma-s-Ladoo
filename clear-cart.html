@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clear Cart</title></head>
+<body>
+<h1>Clearing cart data...</h1>
+<script>
+localStorage.removeItem('cart-storage');
+document.body.innerHTML = '<h1 style="color: green;">Cart cleared! You can close this tab.</h1><p>Go back to <a href="http://localhost:3000">your app</a></p>';
+</script>
+</body>
+</html>

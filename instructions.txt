@@ -1,0 +1,61 @@
+Project Title: Custom Acrylic & Decor E-Commerce Platform
+
+Role: You are an expert Full Stack Developer and UI/UX Designer.
+
+Goal: Build a modern, responsive, and visually appealing e-commerce website for a startup selling custom acrylic stands, wall frames, and fridge magnets. The design should be minimalist, colorful, and artistic to reflect a creative brand.
+
+The website should be a shopify like store
+
+===== PROJECT STATUS =====
+
+✅ Phase 1-5.5: Core E-Commerce Features (COMPLETE)
+  - Multi-theme system (Anime, Motivation, Aesthetic, Valentine)
+  - Product filtering and customization
+  - Shopping cart and product overlay
+  - Mobile-optimized UI
+
+✅ Phase 6: Supabase Database Integration (COMPLETE)
+  - PostgreSQL database with 28 products migrated
+  - Guest checkout (no customer authentication)
+  - Admin panel for product and order management
+  - Custom image storage in Supabase
+  - Order tracking by order number
+
+✅ Phase 7: UPI SMS Payment Integration (COMPLETE) ⭐ BEST SOLUTION
+  - 🎉 Works with PERSONAL SAVINGS ACCOUNT!
+  - 💰 ZERO transaction fees (FREE forever)
+  - 🤖 100% automated via Android SMS
+  - ⚡ Instant payment verification
+  - 📱 All UPI apps supported (GPay, PhonePe, Paytm, etc.)
+  - 🔒 Secure and reliable
+  
+  Optional: PhonePe Gateway (requires business account)
+  
+🔜 Phase 8: Production Deployment (PENDING)
+  - Deploy to production
+  - Setup Android phone for 24/7 operation
+  - Configure domain and SSL
+
+===== QUICK START =====
+
+1. Install dependencies: npm install
+2. Copy .env.local.example to .env.local and add:
+   - Supabase credentials
+   - Your UPI ID (e.g., yourname@paytm)
+3. Run development server: npm run dev
+4. Setup UPI payments: See UPI_QUICKSTART.md (15 minutes!)
+
+===== IMPORTANT FILES =====
+
+🎯 PAYMENT INTEGRATION (NEW):
+- UPI_QUICKSTART.md - Start here! (5-minute setup)
+- UPI_SMS_SETUP_GUIDE.md - Complete detailed guide
+- supabase/upi-sms-schema.sql - Database schema for SMS payments
+- supabase/functions/payment-listener/ - Webhook for SMS forwarding
+
+📚 OTHER DOCS:
+- PHONEPE_ALTERNATIVES.md - Payment options comparison
+- PHONEPE_SETUP.md - PhonePe merchant setup (if you get business account later)
+- BUG_FIXES.md - All bug fixes documentation
+- PHASE_7_COMPLETE.md - Phase 7 implementation summary
+

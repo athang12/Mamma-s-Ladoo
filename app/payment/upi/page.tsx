@@ -1,0 +1,357 @@
+'use client'
+
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
+import { Smartphone, Copy, CheckCircle, Clock, AlertCircle, QrCode } from 'lucide-react'
+import { generateUPILink, formatAmount, UPI_APPS } from '@/lib/upi/utils'
+import QRCodeLib from 'qrcode'
+
+function UPIPaymentContent() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState<'waiting' | 'checking' | 'completed' | 'expired'>('waiting')
+  const [pollCount, setPollCount] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(15 * 60) // 15 minutes
+  const [qrCodeUrl, setQrCodeUrl] = useState<string>('')
+
+  const orderNumber = searchParams.get('orderNumber') || ''
+  const amount = parseFloat(searchParams.get('amount') || '0')
+  
+  // Get UPI ID from environment (you'll set this up)
+  const UPI_ID = process.env.NEXT_PUBLIC_UPI_ID || 'merchant@paytm'
+  const MERCHANT_NAME = process.env.NEXT_PUBLIC_MERCHANT_NAME || 'Custom Acrylic Store'
+
+  const upiLink = generateUPILink({
+    upiId: UPI_ID,
+    name: MERCHANT_NAME,
+    amount: amount,
+    transactionNote: `Order ${orderNumber}`,
+    transactionRef: orderNumber,
+  })
+
+  // Generate QR Code
+  useEffect(() => {
+    const generateQR = async () => {
+      try {
+        const qrDataUrl = await QRCodeLib.toDataURL(upiLink, {
+          width: 300,
+          margin: 2,
+          color: {
+            dark: '#7C3AED', // Purple color
+            light: '#FFFFFF',
+          },
+        })
+        setQrCodeUrl(qrDataUrl)
+      } catch (error) {
+        console.error('Error generating QR code:', error)
+      }
+    }
+    generateQR()
+  }, [upiLink])
+
+  // Countdown timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setStatus('expired')
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  // Poll for payment confirmation
+  useEffect(() => {
+    if (status !== 'waiting') return
+
+    const pollInterval = setInterval(async () => {
+      try {
+        setStatus('checking')
+        
+        const response = await fetch('/api/payment/poll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderNumber, amount }),
+        })
+
+        const data = await response.json()
+
+        if (data.success && data.status === 'completed') {
+          setStatus('completed')
+          clearInterval(pollInterval)
+          
+          // Redirect to success page after 2 seconds
+          setTimeout(() => {
+            router.push(`/order-confirmation?order=${orderNumber}`)
+          }, 2000)
+        } else {
+          setStatus('waiting')
+        }
+
+        setPollCount((prev) => prev + 1)
+      } catch (error) {
+        console.error('Polling error:', error)
+        setStatus('waiting')
+      }
+    }, 3000) // Poll every 3 seconds
+
+    // Stop polling after 15 minutes
+    setTimeout(() => {
+      clearInterval(pollInterval)
+      if (status === 'waiting') {
+        setStatus('expired')
+      }
+    }, 15 * 60 * 1000)
+
+    return () => clearInterval(pollInterval)
+  }, [orderNumber, amount, router, status])
+
+  const copyUPIId = () => {
+    navigator.clipboard.writeText(UPI_ID)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
+  if (!orderNumber || !amount) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Invalid Payment Link</h1>
+          <p className="text-gray-600 mb-6">Please start from checkout.</p>
+          <button
+            onClick={() => router.push('/checkout')}
+            className="btn-primary"
+          >
+            Go to Checkout
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 py-12 px-4">
+      <div className="max-w-3xl mx-auto">
+        {/* Status Badge */}
+        <div className="text-center mb-6">
+          {status === 'completed' && (
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-semibold">Payment Received!</span>
+            </div>
+          )}
+          {status === 'checking' && (
+            <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-800 px-4 py-2 rounded-full">
+              <Clock className="w-5 h-5 animate-spin" />
+              <span className="font-semibold">Checking payment...</span>
+            </div>
+          )}
+          {status === 'waiting' && (
+            <div className="inline-flex items-center gap-2 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full">
+              <Clock className="w-5 h-5" />
+              <span className="font-semibold">Waiting for payment - {formatTime(timeLeft)}</span>
+            </div>
+          )}
+          {status === 'expired' && (
+            <div className="inline-flex items-center gap-2 bg-red-100 text-red-800 px-4 py-2 rounded-full">
+              <AlertCircle className="w-5 h-5" />
+              <span className="font-semibold">Payment time expired</span>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Order Details */}
+          <div className="text-center mb-8 pb-8 border-b">
+            <h1 className="text-3xl font-bold mb-2">Complete Your Payment</h1>
+            <p className="text-gray-600 mb-4">Order #{orderNumber}</p>
+            <div className="text-5xl font-bold text-purple-600 mb-2">
+              {formatAmount(amount)}
+            </div>
+            <p className="text-sm text-gray-500">
+              Exact amount (including paise) to ensure instant confirmation
+            </p>
+          </div>
+
+          {status !== 'completed' && status !== 'expired' && (
+            <>
+              {/* UPI Payment Instructions */}
+              <div className="space-y-6">
+                {/* Method 1: UPI Apps */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <Smartphone className="w-5 h-5 text-purple-600" />
+                    Method 1: Pay via UPI App
+                  </h3>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    {UPI_APPS.map((app) => (
+                      <a
+                        key={app.id}
+                        href={upiLink}
+                        className="flex flex-col items-center gap-2 p-4 border-2 border-gray-200 rounded-xl hover:border-purple-600 hover:bg-purple-50 transition-colors"
+                      >
+                        <Smartphone className="w-8 h-8 text-purple-600" />
+                        <span className="font-semibold text-sm">{app.name}</span>
+                      </a>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Click on your UPI app to open and complete payment
+                  </p>
+                </div>
+
+                {/* Method 2: UPI ID */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3">Method 2: Pay to UPI ID</h3>
+                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-gray-200">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">UPI ID:</span>
+                      <button
+                        onClick={copyUPIId}
+                        className="flex items-center gap-2 text-purple-600 hover:text-purple-700 text-sm font-semibold"
+                      >
+                        {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                        {copied ? 'Copied!' : 'Copy'}
+                      </button>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-600 break-all">
+                      {UPI_ID}
+                    </div>
+                  </div>
+                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mt-3">
+                    <p className="text-sm font-semibold text-yellow-800 mb-2">⚠️ Important:</p>
+                    <ul className="text-sm text-yellow-700 space-y-1">
+                      <li>• Pay <strong>exactly {formatAmount(amount)}</strong> (with paise)</li>
+                      <li>• Do not round up or down the amount</li>
+                      <li>• Payment will be auto-confirmed within seconds</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Method 3: QR Code */}
+                <div>
+                  <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+                    <QrCode className="w-5 h-5 text-purple-600" />
+                    Method 3: Scan QR Code
+                  </h3>
+                  <div className="bg-white border-2 border-purple-200 p-6 rounded-xl text-center">
+                    {qrCodeUrl ? (
+                      <>
+                        <img 
+                          src={qrCodeUrl} 
+                          alt="UPI Payment QR Code" 
+                          className="mx-auto mb-3 rounded-lg shadow-md"
+                          style={{ width: '300px', height: '300px' }}
+                        />
+                        <p className="text-sm font-semibold text-gray-700 mb-1">
+                          Scan with any UPI app
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          GPay, PhonePe, Paytm, BHIM, etc.
+                        </p>
+                      </>
+                    ) : (
+                      <div className="py-16">
+                        <QrCode className="w-16 h-16 text-gray-400 mx-auto mb-2 animate-pulse" />
+                        <p className="text-sm text-gray-500">Generating QR code...</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-3 bg-purple-50 border border-purple-200 rounded-lg p-3">
+                    <p className="text-xs text-purple-700">
+                      <strong>💡 Tip:</strong> QR code already includes the exact amount ({formatAmount(amount)}). 
+                      Just scan and confirm payment!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Auto-verification notice */}
+              <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-xl p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>🔄 Auto-verification active:</strong> Your payment will be confirmed automatically 
+                  within seconds of completion. No need to refresh!
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Checked {pollCount} times • Last check: {new Date().toLocaleTimeString()}
+                </p>
+              </div>
+            </>
+          )}
+
+          {status === 'completed' && (
+            <div className="text-center">
+              <CheckCircle className="w-24 h-24 text-green-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Payment Confirmed!</h2>
+              <p className="text-gray-600 mb-4">Redirecting to order confirmation...</p>
+            </div>
+          )}
+
+          {status === 'expired' && (
+            <div className="text-center">
+              <AlertCircle className="w-24 h-24 text-red-600 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-2">Payment Time Expired</h2>
+              <p className="text-gray-600 mb-6">
+                If you've already paid, please contact support with your transaction details.
+              </p>
+              <div className="flex gap-4 justify-center">
+                <button
+                  onClick={() => router.push('/checkout')}
+                  className="btn-primary"
+                >
+                  Try Again
+                </button>
+                <button
+                  onClick={() => router.push(`/order-confirmation?order=${orderNumber}`)}
+                  className="px-6 py-3 border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-medium"
+                >
+                  View Order
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Help Section */}
+        <div className="mt-8 bg-white rounded-xl shadow-lg p-6">
+          <h3 className="font-bold text-lg mb-4">Need Help?</h3>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p><strong>Issue with payment?</strong> Contact us immediately:</p>
+            <p>📧 Email: support@customacrylic.com</p>
+            <p>📱 Phone: +91 98765 43210</p>
+            <p className="text-xs text-gray-500 mt-4">
+              Order Number: {orderNumber} • Amount: {formatAmount(amount)}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function UPIPaymentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <Clock className="w-16 h-16 text-purple-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading payment...</p>
+        </div>
+      </div>
+    }>
+      <UPIPaymentContent />
+    </Suspense>
+  )
+}

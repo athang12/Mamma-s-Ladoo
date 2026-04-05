@@ -1,0 +1,214 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&family=Bangers&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');
+
+:root {
+  /* Default theme variables - will be overridden by ThemeProvider */
+  --color-primary: #FFB6C1;
+  --color-secondary: #E6E6FA;
+  --color-accent: #FFDAB9;
+  --color-background: #FFFFFF;
+  --color-text: #4A4A4A;
+  --color-text-secondary: #9E9E9E;
+  --color-border: #F0E5E5;
+  
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Inter', sans-serif;
+  --font-display: 'Cormorant Garamond', serif;
+  
+  --border-radius: 24px;
+}
+
+@layer base {
+  * {
+    @apply box-border;
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply text-base;
+    background: var(--color-background);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+  
+  /* Mobile-first: Base font sizes for mobile */
+  html {
+    @apply text-base;
+  }
+  
+  /* Tablet and up */
+  @media (min-width: 768px) {
+    html {
+      @apply text-lg;
+    }
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 rounded-full font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+    color: white;
+  }
+  
+  .btn-secondary {
+    @apply bg-white px-6 py-3 rounded-full font-semibold shadow-md hover:shadow-lg transition-all duration-200;
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--color-primary);
+  }
+  
+  .card {
+    @apply bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden;
+    border-radius: var(--border-radius);
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 border-2 rounded-xl outline-none transition-all;
+    border-color: var(--color-border);
+  }
+  
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+  }
+  
+  /* Mobile-specific styles */
+  @media (max-width: 767px) {
+    .btn-primary, .btn-secondary {
+      @apply px-5 py-2.5 text-base;
+    }
+    
+    .card {
+      @apply rounded-xl;
+    }
+    
+    /* Larger touch targets for mobile */
+    button, a {
+      @apply min-h-[44px];
+    }
+  }
+  
+  /* Theme-specific overrides */
+  [data-theme="anime"] {
+    --color-primary: #FF1493;
+    --color-secondary: #00BFFF;
+    --color-accent: #FF6347;
+  }
+  
+  [data-theme="anime"] body {
+    background-image: 
+      linear-gradient(135deg, #FFF5F8 0%, #FFE5F0 100%);
+  }
+  
+  [data-theme="anime"] .btn-primary {
+    @apply font-bold;
+    box-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+    text-transform: uppercase;
+  }
+  
+  [data-theme="anime"] .card {
+    @apply border-2;
+    border-color: var(--color-primary);
+    box-shadow: 6px 6px 0px rgba(255, 20, 147, 0.2);
+  }
+  
+  [data-theme="motivation"] {
+    --color-primary: #FF8C42;
+    --color-secondary: #4A90E2;
+    --color-accent: #FFD700;
+  }
+  
+  [data-theme="motivation"] body {
+    background-image: 
+      linear-gradient(135deg, #FFFEF7 0%, #FFF5E6 100%);
+  }
+  
+  [data-theme="motivation"] .btn-primary {
+    @apply font-bold tracking-wide;
+    text-transform: uppercase;
+  }
+  
+  [data-theme="valentine"] {
+    --color-primary: #FF69B4;
+    --color-secondary: #DC143C;
+    --color-accent: #FFB6C1;
+  }
+  
+  [data-theme="valentine"] body {
+    background-image: 
+      linear-gradient(135deg, #FFF0F5 0%, #FFE5EE 100%);
+  }
+  
+  [data-theme="valentine"] .btn-primary {
+    @apply shadow-2xl;
+    box-shadow: 0 10px 25px rgba(255, 105, 180, 0.3);
+  }
+  
+  [data-theme="valentine"] .card {
+    @apply shadow-2xl;
+    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.15);
+  }
+  
+  [data-theme="aesthetic"] body {
+    background-image: 
+      linear-gradient(135deg, #FFFFFF 0%, #FFF5F9 100%);
+  }
+  
+  /* Container utilities */
+  .container {
+    @apply mx-auto px-4;
+    max-width: 1280px;
+  }
+  
+  @media (min-width: 640px) {
+    .container {
+      @apply px-6;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .container {
+      @apply px-8;
+    }
+  }
+}
+
+@layer utilities {
+  /* Mobile-friendly utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .tap-highlight-transparent {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Safe area insets for mobile */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Smooth scrolling for mobile */
+  .scroll-smooth-mobile {
+    -webkit-overflow-scrolling: touch;
+  }
+}

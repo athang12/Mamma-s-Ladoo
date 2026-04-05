@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  images      String[]
+  category    Category
+  customizable Boolean @default(false)
+  stock       Int      @default(0)
+  featured    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+enum Category {
+  ACRYLIC_STANDS
+  WALL_FRAMES
+  FRIDGE_MAGNETS
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  sessionId String     @unique
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id              String  @id @default(uuid())
+  cartId          String
+  cart            Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId       String
+  product         Product @relation(fields: [productId], references: [id])
+  quantity        Int
+  customization   String?
+  
+  @@unique([cartId, productId])
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  shippingAddress String
+  city            String
+  postalCode      String
+  country         String
+  status          OrderStatus @default(PENDING)
+  total           Float
+  items           OrderItem[]
+  stripePaymentId String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderItem {
+  id            String  @id @default(uuid())
+  orderId       String
+  order         Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String
+  product       Product @relation(fields: [productId], references: [id])
+  quantity      Int
+  price         Float
+  customization String?
+}
