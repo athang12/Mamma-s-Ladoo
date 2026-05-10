@@ -6,51 +6,50 @@ import { ArrowRight } from 'lucide-react'
 
 export default function Categories() {
   return (
-    <section className="container mx-auto px-4 py-8 sm:py-12 md:py-16">
-      <div className="text-center mb-6 sm:mb-8 md:mb-12">
-        <div className="text-5xl mb-3">🍥</div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-3 md:mb-4">
-          Shop by Category
-        </h2>
-        <p className="text-gray-600 text-sm sm:text-base md:text-lg">
-          Pick your favorite ladoos and snacks
-        </p>
-      </div>
+    <section className="py-10 sm:py-14 md:py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-8 sm:mb-10 md:mb-14">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-brand-green-pale text-brand-green text-xs sm:text-sm font-semibold mb-3 tracking-wide uppercase">
+            Categories
+          </span>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-display font-bold mb-2 sm:mb-3">
+            Shop by Category
+          </h2>
+          <p className="text-gray-500 text-sm sm:text-base md:text-lg max-w-md mx-auto">
+            Pick your favorite ladoos and snacks
+          </p>
+        </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
-        {categories.map((category) => (
-          <Link
-            key={category.id}
-            href={`/products?category=${category.slug}`}
-            className="card group cursor-pointer tap-highlight-transparent relative border border-orange-100"
-          >
-            <div className="relative overflow-hidden h-52 sm:h-56 md:h-64">
-              <img
-                src={category.image}
-                alt={category.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                loading="lazy"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6 text-white">
-                <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-1">
-                  {category.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-200 line-clamp-2">
-                  {category.description}
-                </p>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-5 md:gap-6">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/products?category=${category.slug}`}
+              className="group cursor-pointer tap-highlight-transparent relative rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-500"
+            >
+              <div className="relative overflow-hidden h-44 sm:h-52 md:h-64">
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-brand-green-dark/85 via-brand-green-dark/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-5">
+                  <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-0.5">
+                    {category.name}
+                  </h3>
+                  <p className="text-[10px] sm:text-xs text-green-100 line-clamp-1">
+                    {category.description}
+                  </p>
+                </div>
+                <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white/40 transition-colors">
+                  <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-0.5 transition-transform" />
+                </div>
               </div>
-            </div>
-            <div className="p-4 sm:p-5 md:p-6">
-              <div className="flex items-center justify-between">
-                <span className="text-sm sm:text-base font-semibold text-orange-700">
-                  Explore
-                </span>
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   )

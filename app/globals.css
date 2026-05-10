@@ -2,22 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;600;700&family=Bangers&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=Quicksand:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=Bangers&family=Montserrat:wght@400;600;700&family=Open+Sans:wght@400;600&family=Playfair+Display:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=Quicksand:wght@400;500;600;700&display=swap');
 
 :root {
-  --color-primary: #ea580c;
-  --color-secondary: #f59e0b;
-  --color-accent: #dc2626;
-  --color-background: #fffaf3;
-  --color-text: #3f2a1d;
-  --color-text-secondary: #7c5a45;
-  --color-border: #f7d6b6;
+  --color-primary: #2d6a4f;
+  --color-primary-light: #40916c;
+  --color-primary-pale: #d8f3dc;
+  --color-primary-dark: #1b4332;
+  --color-secondary: #52b788;
+  --color-accent: #b7e4c7;
+  --color-background: #fafff7;
+  --color-text: #1a1a2e;
+  --color-text-secondary: #4a5568;
+  --color-border: #d8f3dc;
   
-  --font-heading: 'Playfair Display', serif;
+  --font-heading: 'Poppins', sans-serif;
   --font-body: 'Inter', sans-serif;
-  --font-display: 'Cormorant Garamond', serif;
+  --font-display: 'Quicksand', sans-serif;
   
-  --border-radius: 24px;
+  --border-radius: 16px;
 }
 
 @layer base {
@@ -30,7 +33,7 @@
   }
   
   body {
-    @apply text-base;
+    @apply text-base antialiased;
     background: var(--color-background);
     color: var(--color-text);
     font-family: var(--font-body);
@@ -68,10 +71,11 @@
   
   .btn-secondary:hover {
     border-color: var(--color-primary);
+    color: var(--color-primary);
   }
   
   .card {
-    @apply bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden;
+    @apply bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden;
     border-radius: var(--border-radius);
   }
   
@@ -82,7 +86,7 @@
   
   .input-field:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+    box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.12);
   }
   
   /* Mobile-specific styles */
@@ -142,5 +146,14 @@
   /* Smooth scrolling for mobile */
   .scroll-smooth-mobile {
     -webkit-overflow-scrolling: touch;
+  }
+
+  /* Scrollbar hide for marquee */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ShoppingCart, Heart, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ShoppingCart, Heart, ChevronLeft, ChevronRight, Star } from 'lucide-react'
 import { useCartStore } from '@/lib/store'
 import { useState, useEffect } from 'react'
 import type { Product } from '@/lib/supabase/types'
@@ -11,9 +11,9 @@ export default function ProductCard({ product }: { product: Product }) {
   const addItem = useCartStore((state) => state.addItem)
   const [liked, setLiked] = useState(false)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [justAdded, setJustAdded] = useState(false)
   const ingredientItems = parseIngredientList(product.description)
   
-  // Auto-rotate images every 3 seconds
   useEffect(() => {
     if (product.images.length <= 1) return
     
@@ -50,6 +50,8 @@ export default function ProductCard({ product }: { product: Product }) {
       quantity: 1,
       selectedColor: 'standard',
     })
+    setJustAdded(true)
+    setTimeout(() => setJustAdded(false), 1500)
   }
 
   const getCategoryDisplay = (cat: string) => {
@@ -66,6 +68,8 @@ export default function ProductCard({ product }: { product: Product }) {
       SNACKS: 'Snack',
       DRY_SNACKS: 'Dry Snack',
       GIFT_BOXES: 'Gift Box',
+      LADOOS_DRYFRUIT: 'Dry Fruit Ladoo',
+      LIGHT_SWEETS: 'Light Sweet',
     }
     return mapping[cat] || cat
   }
@@ -73,34 +77,33 @@ export default function ProductCard({ product }: { product: Product }) {
   const productLink = `/products/${product.id}`
 
   return (
-    <div className="card group h-full flex flex-col">
+    <div className="group h-full flex flex-col bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-green-100/60">
       <Link href={productLink} className="flex-1 flex flex-col">
-        <div className="relative overflow-hidden h-48 sm:h-56 md:h-64">
+        <div className="relative overflow-hidden h-44 sm:h-52 md:h-60 bg-green-50">
           <img
             src={product.images[currentImageIndex] || product.images[0]}
             alt={`${product.name} - Image ${currentImageIndex + 1}`}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
           
-          {/* Image Navigation Arrows - Only show if multiple images */}
+          {/* Image Navigation Arrows */}
           {product.images.length > 1 && (
             <>
               <button
                 onClick={handlePrevImage}
-                className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-md transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Previous image"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-800" />
+                <ChevronLeft className="w-4 h-4 text-gray-800" />
               </button>
               <button
                 onClick={handleNextImage}
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-md transition-all opacity-100 md:opacity-0 md:group-hover:opacity-100"
                 aria-label="Next image"
               >
-                <ChevronRight className="w-5 h-5 text-gray-800" />
+                <ChevronRight className="w-4 h-4 text-gray-800" />
               </button>
               
-              {/* Image Indicators */}
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
                 {product.images.map((_, idx) => (
                   <button
@@ -110,9 +113,9 @@ export default function ProductCard({ product }: { product: Product }) {
                       e.stopPropagation()
                       setCurrentImageIndex(idx)
                     }}
-                    className={`w-2 h-2 rounded-full transition-all ${
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
                       idx === currentImageIndex 
-                        ? 'bg-white w-6' 
+                        ? 'bg-white w-5' 
                         : 'bg-white/50 hover:bg-white/75'
                     }`}
                     aria-label={`View image ${idx + 1}`}
@@ -122,60 +125,73 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
           
-          {/* Product Type Badge */}
+          {/* Category Badge */}
           <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
-            <div className="bg-black/70 backdrop-blur-sm text-white px-2 py-1 rounded-lg text-xs font-medium">
+            <div className="bg-brand-green text-white px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm">
               {getCategoryDisplay(product.category)}
             </div>
           </div>
 
+          {/* Like button */}
           <button
             onClick={(e) => {
               e.preventDefault()
               setLiked(!liked)
             }}
-            className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all tap-highlight-transparent"
+            className="absolute top-2 right-2 sm:top-3 sm:right-3 w-8 h-8 sm:w-9 sm:h-9 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all tap-highlight-transparent"
             aria-label={liked ? 'Unlike' : 'Like'}
           >
             <Heart
-              className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors ${liked ? 'fill-pink-500 text-pink-500' : 'text-gray-600'}`}
+              className={`w-4 h-4 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`}
             />
           </button>
+
+          {/* Featured badge */}
+          {product.featured && (
+            <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-amber-400 text-white px-2 py-0.5 rounded-full text-[9px] font-bold shadow-sm">
+              <Star className="w-3 h-3 fill-current" />
+              BEST SELLER
+            </div>
+          )}
         </div>
 
-        <div className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
-          <h3 className="font-semibold text-base sm:text-lg mb-1 sm:mb-2 line-clamp-1">
+        <div className="p-3 sm:p-4 flex-1 flex flex-col">
+          <h3 className="font-semibold text-sm sm:text-base text-gray-900 mb-1 line-clamp-1">
             {product.name}
           </h3>
 
           {ingredientItems.length > 0 ? (
-            <ul className="text-gray-600 text-xs sm:text-sm mb-3 space-y-1">
+            <ul className="text-gray-500 text-[11px] sm:text-xs mb-3 space-y-0.5 flex-1">
               {ingredientItems.slice(0, 3).map((item, index) => (
                 <li key={index} className="leading-snug">• {item}</li>
               ))}
               {ingredientItems.length > 3 && (
-                <li className="text-[11px] sm:text-xs text-gray-500">
+                <li className="text-[10px] sm:text-[11px] text-gray-400">
                   +{ingredientItems.length - 3} more ingredients
                 </li>
               )}
             </ul>
           ) : (
-            <p className="text-gray-600 text-xs sm:text-sm mb-3 line-clamp-2">
+            <p className="text-gray-500 text-[11px] sm:text-xs mb-3 line-clamp-2 flex-1">
               {product.description}
             </p>
           )}
           
-          <div className="flex items-center justify-between mt-auto">
-            <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-              ₹{Number(product.price).toFixed(2)}
+          <div className="flex items-center justify-between mt-auto pt-2 border-t border-green-50">
+            <span className="text-lg sm:text-xl font-bold text-brand-green">
+              ₹{Number(product.price).toFixed(0)}
             </span>
             <button
               onClick={handleAddToCart}
-              className="btn-primary flex items-center space-x-2 px-3 py-2 sm:px-4 sm:py-2 text-sm tap-highlight-transparent"
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-semibold transition-all tap-highlight-transparent ${
+                justAdded
+                  ? 'bg-brand-green text-white'
+                  : 'bg-brand-green-pale text-brand-green hover:bg-brand-green hover:text-white'
+              }`}
               aria-label={`Add ${product.name} to cart`}
             >
-              <ShoppingCart className="w-4 h-4" />
-              <span className="font-semibold">Add</span>
+              <ShoppingCart className="w-3.5 h-3.5" />
+              <span>{justAdded ? 'Added!' : 'Add'}</span>
             </button>
           </div>
         </div>
