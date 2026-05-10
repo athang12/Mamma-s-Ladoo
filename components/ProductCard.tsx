@@ -125,11 +125,17 @@ export default function ProductCard({ product }: { product: Product }) {
             </>
           )}
           
-          {/* Category Badge */}
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3">
-            <div className="bg-brand-green text-white px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm">
+          {/* Badges - stacked vertically */}
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1">
+            <div className="bg-brand-green text-white px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold shadow-sm w-fit">
               {getCategoryDisplay(product.category)}
             </div>
+            {product.featured && (
+              <div className="flex items-center gap-1 bg-amber-400 text-white px-2 py-0.5 rounded-full text-[9px] font-bold shadow-sm w-fit">
+                <Star className="w-3 h-3 fill-current" />
+                BEST SELLER
+              </div>
+            )}
           </div>
 
           {/* Like button */}
@@ -145,14 +151,6 @@ export default function ProductCard({ product }: { product: Product }) {
               className={`w-4 h-4 transition-colors ${liked ? 'fill-red-500 text-red-500' : 'text-gray-500'}`}
             />
           </button>
-
-          {/* Featured badge */}
-          {product.featured && (
-            <div className="absolute top-2 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-amber-400 text-white px-2 py-0.5 rounded-full text-[9px] font-bold shadow-sm">
-              <Star className="w-3 h-3 fill-current" />
-              BEST SELLER
-            </div>
-          )}
         </div>
 
         <div className="p-3 sm:p-4 flex-1 flex flex-col">
